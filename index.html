@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>선형회귀란 무엇일까요?</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #7c3aed;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .panel {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
+        .panel h2 {
+            color: #7c3aed;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+        
+        .setting-group {
+            margin-bottom: 24px;
+            padding: 16px;
+            border-radius: 8px;
+        }
+        
+        .setting-group.purple { background: #faf5ff; }
+        .setting-group.blue { background: #eff6ff; }
+        .setting-group.yellow { background: #fefce8; }
+        .setting-group.green { background: #f0fdf4; }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+        
+        select, input[type="range"] {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        input[type="range"] {
+            padding: 0;
+        }
+        
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .radio-option:hover {
+            background: #f3e8ff;
+        }
+        
+        .radio-option input {
+            margin-right: 10px;
+        }
+        
+        .checkbox-option {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .checkbox-option input {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+        }
+        
+        .description {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 8px;
+        }
+        
+        .info-box {
+            padding: 16px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #faf5ff 0%, #eff6ff 100%);
+            border: 2px solid #c084fc;
+            margin-top: 24px;
+        }
+        
+        .info-box h3 {
+            color: #7c3aed;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .graph-container {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .chart-wrapper {
+            flex-shrink: 0;
+        }
+        
+        .table-wrapper {
+            flex: 1;
+            background: #f9fafb;
+            padding: 16px;
+            border-radius: 8px;
+        }
+        
+        .table-wrapper h3 {
+            color: #374151;
+            margin-bottom: 12px;
+        }
+        
+        .data-table-container {
+            max-height: 350px;
+            overflow-y: auto;
+            border-radius: 6px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+        
+        th {
+            background: #ddd6fe;
+            border: 1px solid #c084fc;
+            padding: 8px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        
+        td {
+            border: 1px solid #d1d5db;
+            padding: 8px;
+            text-align: center;
+            background: white;
+        }
+        
+        tr:hover td {
+            background: #faf5ff;
+        }
+        
+        .formula-box {
+            background: #eff6ff;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .formula-box h3 {
+            color: #1e40af;
+            margin-bottom: 12px;
+        }
+        
+        .formula {
+            font-family: 'Courier New', monospace;
+            font-size: 1.2em;
+            background: white;
+            padding: 16px;
+            border-radius: 6px;
+            border: 2px solid #93c5fd;
+            margin-bottom: 12px;
+        }
+        
+        .tips-section {
+            background: #fefce8;
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid #facc15;
+            margin-top: 20px;
+        }
+        
+        .tips-section ul {
+            margin-left: 20px;
+            margin-top: 8px;
+        }
+        
+        .tips-section li {
+            margin-bottom: 4px;
+            color: #374151;
+        }
+        
+        .bottom-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 30px;
+        }
+        
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .card h3 {
+            color: #7c3aed;
+            margin-bottom: 8px;
+        }
+        
+        .card p {
+            font-size: 0.875rem;
+            color: #6b7280;
+            line-height: 1.5;
+        }
+        
+        @media (max-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .graph-container {
+                flex-direction: column;
+            }
+            
+            .bottom-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <font color = "blue" size="2">부산진여자상업고등학교 인공지능기초 학습자료</font>
+        <h1>🎓 선형회귀란 무엇일까요?</h1>
+        <p class="subtitle">선형회귀는 <font color="blue"><B>데이터를 가장 잘 통과하는 직선</B></font>을 찾는 것. 즉, 각 데이터 점과 직선 사이의 오차가 가장 작아지는 직선을 찾는 거예요. 설정을 바꿔가며 선이 어떻게 달라지는지 관찰해보세요!</p>
+        
+        <div class="main-grid">
+            <!-- 왼쪽: 설정 패널 -->
+            <div class="panel">
+                <h2>⚙️ 설정</h2>
+                
+                <!-- 시나리오 선택 -->
+                <div class="setting-group purple">
+                    <label>📊 데이터 선택</label>
+                    <select id="scenario">
+                        <option value="simple">키와 몸무게 (간단)</option>
+                        <option value="noisy">공부시간과 성적 (노이즈 있음)</option>
+                        <option value="overfit">과적합 예시 (불규칙)</option>
+                    </select>
+                    <p class="description" id="scenarioDesc">키가 클수록 몸무게가 증가하는 간단한 관계</p>
+                </div>
+                
+                <!-- 절편 설정 -->
+                <div class="setting-group blue">
+                    <label class="checkbox-option">
+                        <input type="checkbox" id="fitIntercept" checked>
+                        <span><strong>Fit Intercept (절편 맞추기)</strong></span>
+                    </label>
+                    <p class="description" id="interceptDesc">✅ 선이 y축 어디서든 시작할 수 있어요</p>
+                </div>
+                
+                <!-- 정규화 유형 -->
+                <div class="setting-group">
+                    <label>🎯 정규화 유형</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="regType" value="none" checked>
+                            <span>정규화 없음</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="regType" value="ridge">
+                            <span>Ridge (L2)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="regType" value="lasso">
+                            <span>Lasso (L1)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="regType" value="elastic">
+                            <span>Elastic Net</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Alpha 값 -->
+                <div class="setting-group yellow" id="alphaGroup" style="display:none;">
+                    <label>Alpha (정규화 강도): <span id="alphaValue">0.10</span></label>
+                    <input type="range" id="alpha" min="0" max="1" step="0.05" value="0.1">
+                    <p class="description" id="alphaDesc">약한 정규화 - 데이터에 더 맞춤</p>
+                </div>
+                
+                <!-- L1/L2 비율 -->
+                <div class="setting-group green" id="l1RatioGroup" style="display:none;">
+                    <label>L1 : L2 비율 = <span id="l1Value">0.50</span> : <span id="l2Value">0.50</span></label>
+                    <input type="range" id="l1Ratio" min="0" max="1" step="0.1" value="0.5">
+                    <p class="description" id="l1Desc">균형잡힌 혼합</p>
+                </div>
+                
+                <!-- 현재 정규화 설명 -->
+                <div class="info-box" id="regInfo">
+                    <h3><span id="regEmoji">📏</span> <span id="regTitle">정규화 없음</span></h3>
+                    <p id="regDesc">데이터에 최대한 딱 맞게 선을 그어요. 간단한 데이터에 적합해요.</p>
+                </div>
+            </div>
+            
+            <!-- 오른쪽: 그래프 -->
+            <div class="panel">
+                <h2>📈 결과 그래프</h2>
+                
+                <div class="graph-container">
+                    <div class="chart-wrapper">
+                        <canvas id="chart" width="450" height="350"></canvas>
+                    </div>
+                    
+                    <div class="table-wrapper">
+                        <h3>📊 사용된 데이터</h3>
+                        <div class="data-table-container">
+                            <table id="dataTable">
+                                <thead>
+                                    <tr>
+                                        <th>번호</th>
+                                        <th id="xHeader">키 (cm)</th>
+                                        <th id="yHeader">몸무게 (kg)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dataBody"></tbody>
+                            </table>
+                        </div>
+                        <p class="description" style="margin-top: 8px;">총 <strong id="dataCount">9</strong>개의 데이터로 학습했어요</p>
+                    </div>
+                </div>
+                
+                <!-- 수식 표시 -->
+                <div class="formula-box">
+                    <h3>📐 예측 수식</h3>
+                    <div class="formula" id="formula">y = 0.00 × x + 0.00</div>
+                    <div>
+                        <p style="font-size: 0.875rem; color: #374151;">• 기울기 (slope): <strong id="slopeValue">0.00</strong></p>
+                        <p style="font-size: 0.875rem; color: #374151;">• 절편 (intercept): <strong id="interceptValue">0.00</strong></p>
+                    </div>
+                </div>
+                
+                <!-- 학습 포인트 -->
+                <div class="tips-section">
+                    <p style="font-weight: 600; margin-bottom: 4px;">💡 관찰해보세요!</p>
+                    <ul>
+                        <li>정규화를 강하게 하면 선이 어떻게 변하나요?</li>
+                        <li>데이터가 불규칙할 때 어떤 정규화가 좋을까요?</li>
+                        <li>절편을 끄면 선이 어디를 지나가나요?</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 하단 설명 카드 -->
+        <div class="bottom-cards">
+            <div class="card">
+                <h3>🎯 Ridge는 언제?</h3>
+                <p>변수가 많고 서로 관련이 있을 때! 모든 변수를 조금씩 사용해요.</p>
+            </div>
+            <div class="card">
+                <h3>🎯 Lasso는 언제?</h3>
+                <p>중요한 변수만 찾고 싶을 때! 필요없는 변수는 제거해요.</p>
+            </div>
+            <div class="card">
+                <h3>🎯 Elastic은 언제?</h3>
+                <p>둘의 장점이 다 필요할 때! 균형잡힌 선택을 해요.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 데이터 정의
+        const scenarios = {
+            simple: {
+                name: '키와 몸무게',
+                data: [
+                    {x: 140, y: 35}, {x: 145, y: 38}, {x: 150, y: 42}, 
+                    {x: 155, y: 45}, {x: 160, y: 50}, {x: 165, y: 55},
+                    {x: 170, y: 60}, {x: 175, y: 65}, {x: 180, y: 70}
+                ],
+                xLabel: '키 (cm)',
+                yLabel: '몸무게 (kg)',
+                description: '키가 클수록 몸무게가 증가하는 간단한 관계'
+            },
+            noisy: {
+                name: '공부시간과 성적',
+                data: [
+                    {x: 1, y: 45}, {x: 2, y: 55}, {x: 3, y: 52}, 
+                    {x: 4, y: 65}, {x: 5, y: 68}, {x: 6, y: 75},
+                    {x: 7, y: 72}, {x: 8, y: 85}, {x: 9, y: 88},
+                    {x: 10, y: 95}
+                ],
+                xLabel: '공부시간 (시간)',
+                yLabel: '성적 (점)',
+                description: '데이터에 노이즈가 있는 경우'
+            },
+            overfit: {
+                name: '과적합 예시',
+                data: [
+                    {x: 1, y: 10}, {x: 2, y: 25}, {x: 3, y: 15}, 
+                    {x: 4, y: 35}, {x: 5, y: 30}, {x: 6, y: 50},
+                    {x: 7, y: 45}, {x: 8, y: 60}, {x: 9, y: 55},
+                    {x: 10, y: 70}
+                ],
+                xLabel: 'X',
+                yLabel: 'Y',
+                description: '불규칙한 데이터 - 정규화가 필요한 경우'
+            }
+        };
+        
+        // 상태 변수
+        let currentScenario = 'simple';
+        let fitIntercept = true;
+        let regType = 'none';
+        let alpha = 0.1;
+        let l1Ratio = 0.5;
+        let chart = null;
+        
+        // 차트 초기화
+        function initChart() {
+            const ctx = document.getElementById('chart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        {
+                            label: '실제 데이터',
+                            data: [],
+                            backgroundColor: '#8b5cf6',
+                            pointRadius: 6
+                        },
+                        {
+                            label: '예측 선',
+                            data: [],
+                            type: 'line',
+                            borderColor: '#ef4444',
+                            borderWidth: 3,
+                            pointRadius: 0,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: false,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            title: {
+                                display: true,
+                                text: '키 (cm)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '몸무게 (kg)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toFixed(1);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 선형회귀 계산
+        function calculateRegression() {
+            const data = scenarios[currentScenario].data;
+            const n = data.length;
+            
+            let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+            
+            data.forEach(point => {
+                sumX += point.x;
+                sumY += point.y;
+                sumXY += point.x * point.y;
+                sumX2 += point.x * point.x;
+            });
+            
+            let slope, intercept;
+            
+            if (regType === 'none') {
+                slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+                intercept = fitIntercept ? (sumY - slope * sumX) / n : 0;
+            } else if (regType === 'ridge') {
+                const regularization = 1 + alpha;
+                slope = (n * sumXY - sumX * sumY) / ((n * sumX2 - sumX * sumX) * regularization);
+                intercept = fitIntercept ? (sumY - slope * sumX) / n : 0;
+            } else if (regType === 'lasso') {
+                slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+                const originalSlope = slope;
+                
+                // Lasso: 기울기를 줄이되, 매우 강한 정규화일 때만 0으로
+                slope = slope * (1 - alpha * 0.8);
+                
+                // Alpha가 0.9 이상일 때만 완전히 0으로
+                if (alpha > 0.9) {
+                    slope = 0;
+                }
+                
+                intercept = fitIntercept ? (sumY - slope * sumX) / n : 0;
+            } else if (regType === 'elastic') {
+                const ridgePart = 1 + alpha * (1 - l1Ratio);
+                slope = (n * sumXY - sumX * sumY) / ((n * sumX2 - sumX * sumX) * ridgePart);
+                
+                // Lasso 효과: 기울기 감소
+                slope = slope * (1 - alpha * l1Ratio * 0.8);
+                
+                // 매우 강한 Lasso 정규화일 때만 0으로
+                if (alpha > 0.9 && l1Ratio > 0.7) {
+                    slope = 0;
+                }
+                
+                intercept = fitIntercept ? (sumY - slope * sumX) / n : 0;
+            }
+            
+            return { slope, intercept };
+        }
+        
+        // 그래프 업데이트
+        function updateChart() {
+            const scenario = scenarios[currentScenario];
+            const data = scenario.data;
+            const { slope, intercept } = calculateRegression();
+            
+            // 회귀선 데이터
+            const minX = Math.min(...data.map(d => d.x));
+            const maxX = Math.max(...data.map(d => d.x));
+            const lineData = [
+                { x: minX, y: slope * minX + intercept },
+                { x: maxX, y: slope * maxX + intercept }
+            ];
+            
+            // Y축 범위 계산 (실제 데이터를 기본으로, 절편 없을 때는 0 포함)
+            const yValues = data.map(d => d.y);
+            let minY = Math.min(...yValues);
+            let maxY = Math.max(...yValues);
+            
+            // 절편이 없으면(원점 통과) Y축에 0과 회귀선 값들 포함
+            if (!fitIntercept) {
+                const lineYValues = lineData.map(d => d.y);
+                minY = Math.min(0, minY, ...lineYValues);
+                maxY = Math.max(maxY, ...lineYValues);
+            }
+            
+            const yPadding = (maxY - minY) * 0.15;
+            
+            // 차트 업데이트
+            chart.data.datasets[0].data = data;
+            chart.data.datasets[1].data = lineData;
+            chart.options.scales.x.title.text = scenario.xLabel;
+            chart.options.scales.y.title.text = scenario.yLabel;
+            chart.options.scales.y.min = minY - yPadding;
+            chart.options.scales.y.max = maxY + yPadding;
+            chart.update();
+            
+            // 수식 업데이트
+            const sign = intercept >= 0 ? '+' : '';
+            document.getElementById('formula').textContent = 
+                `y = ${slope.toFixed(2)} × x ${sign} ${intercept.toFixed(2)}`;
+            document.getElementById('slopeValue').textContent = slope.toFixed(2);
+            document.getElementById('interceptValue').textContent = intercept.toFixed(2);
+        }
+        
+        // 테이블 업데이트
+        function updateTable() {
+            const scenario = scenarios[currentScenario];
+            const tbody = document.getElementById('dataBody');
+            tbody.innerHTML = '';
+            
+            scenario.data.forEach((point, index) => {
+                const row = tbody.insertRow();
+                row.insertCell(0).textContent = index + 1;
+                row.insertCell(1).textContent = point.x;
+                row.insertCell(2).textContent = point.y;
+            });
+            
+            document.getElementById('xHeader').textContent = scenario.xLabel;
+            document.getElementById('yHeader').textContent = scenario.yLabel;
+            document.getElementById('dataCount').textContent = scenario.data.length;
+        }
+        
+        // 정규화 설명 업데이트
+        function updateRegInfo() {
+            const infos = {
+                none: {
+                    emoji: '📏',
+                    title: '정규화 없음',
+                    desc: '데이터에 최대한 딱 맞게 선을 그어요. 간단한 데이터에 적합해요.'
+                },
+                ridge: {
+                    emoji: '🏔️',
+                    title: 'Ridge (릿지)',
+                    desc: '기울기를 부드럽게 만들어요. 극단적인 값을 방지하고 안정적인 예측을 해요.'
+                },
+                lasso: {
+                    emoji: '🎯',
+                    title: 'Lasso (라쏘)',
+                    desc: '중요하지 않은 변수는 0으로 만들어요. 정말 중요한 특징만 선택해요.'
+                },
+                elastic: {
+                    emoji: '🎨',
+                    title: 'Elastic Net',
+                    desc: 'Ridge와 Lasso의 장점을 섞었어요. 균형잡힌 예측을 해요.'
+                }
+            };
+            
+            const info = infos[regType];
+            document.getElementById('regEmoji').textContent = info.emoji;
+            document.getElementById('regTitle').textContent = info.title;
+            document.getElementById('regDesc').textContent = info.desc;
+        }
+        
+        // 이벤트 리스너
+        document.getElementById('scenario').addEventListener('change', (e) => {
+            currentScenario = e.target.value;
+            document.getElementById('scenarioDesc').textContent = scenarios[currentScenario].description;
+            updateTable();
+            updateChart();
+        });
+        
+        document.getElementById('fitIntercept').addEventListener('change', (e) => {
+            fitIntercept = e.target.checked;
+            document.getElementById('interceptDesc').textContent = 
+                fitIntercept ? '✅ 선이 y축 어디서든 시작할 수 있어요' : '❌ 선이 원점(0,0)을 지나가야 해요';
+            updateChart();
+        });
+        
+        document.querySelectorAll('input[name="regType"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                regType = e.target.value;
+                document.getElementById('alphaGroup').style.display = 
+                    regType !== 'none' ? 'block' : 'none';
+                document.getElementById('l1RatioGroup').style.display = 
+                    regType === 'elastic' ? 'block' : 'none';
+                updateRegInfo();
+                updateChart();
+            });
+        });
+        
+        document.getElementById('alpha').addEventListener('input', (e) => {
+            alpha = parseFloat(e.target.value);
+            document.getElementById('alphaValue').textContent = alpha.toFixed(2);
+            
+            const desc = alpha < 0.3 ? '약한 정규화 - 데이터에 더 맞춤' :
+                        alpha < 0.7 ? '중간 정규화 - 균형잡힘' :
+                        '강한 정규화 - 더 단순한 선';
+            document.getElementById('alphaDesc').textContent = desc;
+            updateChart();
+        });
+        
+        document.getElementById('l1Ratio').addEventListener('input', (e) => {
+            l1Ratio = parseFloat(e.target.value);
+            document.getElementById('l1Value').textContent = l1Ratio.toFixed(2);
+            document.getElementById('l2Value').textContent = (1 - l1Ratio).toFixed(2);
+            
+            const desc = l1Ratio < 0.3 ? 'Ridge에 가까움 (모든 변수 사용)' :
+                        l1Ratio < 0.7 ? '균형잡힌 혼합' :
+                        'Lasso에 가까움 (변수 선택)';
+            document.getElementById('l1Desc').textContent = desc;
+            updateChart();
+        });
+        
+        // 초기화
+        initChart();
+        updateTable();
+        updateChart();
+    </script>
+</body>
+</html>
