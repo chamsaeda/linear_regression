@@ -4,8 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>선형회귀란 무엇일까요?</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="chart.umd.min.js"></script>
     <style>
+        /* 새로 추가한 🎯 아이콘에 대한 스타일 */
+#ridgeIcon {
+    margin-right: 5px; /* 텍스트와의 간격 */
+    color: #ef4444; /* 빨간색 계열로 목표(🎯) 강조 */
+    cursor: pointer; /* 마우스 커서를 손가락 모양으로 바꿔서 클릭 가능함을 표시 */
+    font-size: 1.2em; /* 크기 약간 키우기 */
+    font-weight: bold;
+}
+/* [수정] 팝업 메시지 스타일 - 툴팁처럼 보이도록 수정 */
+#sparrowPopup {
+    position: absolute; /* 핵심: 절대 위치로 설정 (클릭 위치 기준으로 표시) */
+    background-color: #374151; /* 어두운 배경 */
+    color: white; /* 흰색 글자 */
+    padding: 6px 10px; /* 작은 크기 */
+    border-radius: 4px;
+    font-size: 0.85em; /* 작은 글씨 */
+    font-weight: normal;
+    white-space: nowrap; /* 내용이 한 줄로 나오도록 */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    opacity: 0; 
+    pointer-events: none; 
+    transition: opacity 0.2s ease-in-out; 
+}
+
+#sparrowPopup.show {
+    opacity: 1;
+}
+
+/* 툴팁 꼬리(선택 사항: 더 툴팁처럼 보이게 추가) */
+#sparrowPopup::after {
+    content: "";
+    position: absolute;
+    top: -5px; /* 툴팁 위쪽에 꼬리가 나오도록 위치 조정 */
+    left: 10px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent #374151 transparent; /* 꼬리 색상 */
+}
         * {
             margin: 0;
             padding: 0;
@@ -285,17 +324,16 @@
     </style>
 </head>
 <body>
+
     <div class="container">
         <font color = "blue" size="2">부산진여자상업고등학교 인공지능기초 학습자료</font>
         <h1>🎓 선형회귀란 무엇일까요?</h1>
         <p class="subtitle">선형회귀는 <font color="blue"><B>데이터를 가장 잘 통과하는 직선</B></font>을 찾는 것. 즉, 각 데이터 점과 직선 사이의 오차가 가장 작아지는 직선을 찾는 거예요. 설정을 바꿔가며 선이 어떻게 달라지는지 관찰해보세요!</p>
         
         <div class="main-grid">
-            <!-- 왼쪽: 설정 패널 -->
             <div class="panel">
                 <h2>⚙️ 설정</h2>
                 
-                <!-- 시나리오 선택 -->
                 <div class="setting-group purple">
                     <label>📊 데이터 선택</label>
                     <select id="scenario">
@@ -306,7 +344,6 @@
                     <p class="description" id="scenarioDesc">키가 클수록 몸무게가 증가하는 간단한 관계</p>
                 </div>
                 
-                <!-- 절편 설정 -->
                 <div class="setting-group blue">
                     <label class="checkbox-option">
                         <input type="checkbox" id="fitIntercept" checked>
@@ -315,7 +352,6 @@
                     <p class="description" id="interceptDesc">✅ 선이 y축 어디서든 시작할 수 있어요</p>
                 </div>
                 
-                <!-- 정규화 유형 -->
                 <div class="setting-group">
                     <label>🎯 정규화 유형</label>
                     <div class="radio-group">
@@ -338,28 +374,24 @@
                     </div>
                 </div>
                 
-                <!-- Alpha 값 -->
                 <div class="setting-group yellow" id="alphaGroup" style="display:none;">
                     <label>Alpha (정규화 강도): <span id="alphaValue">0.10</span></label>
                     <input type="range" id="alpha" min="0" max="1" step="0.05" value="0.1">
                     <p class="description" id="alphaDesc">약한 정규화 - 데이터에 더 맞춤</p>
                 </div>
                 
-                <!-- L1/L2 비율 -->
                 <div class="setting-group green" id="l1RatioGroup" style="display:none;">
                     <label>L1 : L2 비율 = <span id="l1Value">0.50</span> : <span id="l2Value">0.50</span></label>
                     <input type="range" id="l1Ratio" min="0" max="1" step="0.1" value="0.5">
                     <p class="description" id="l1Desc">균형잡힌 혼합</p>
                 </div>
                 
-                <!-- 현재 정규화 설명 -->
                 <div class="info-box" id="regInfo">
                     <h3><span id="regEmoji">📏</span> <span id="regTitle">정규화 없음</span></h3>
                     <p id="regDesc">데이터에 최대한 딱 맞게 선을 그어요. 간단한 데이터에 적합해요.</p>
                 </div>
             </div>
             
-            <!-- 오른쪽: 그래프 -->
             <div class="panel">
                 <h2>📈 결과 그래프</h2>
                 
@@ -386,7 +418,6 @@
                     </div>
                 </div>
                 
-                <!-- 수식 표시 -->
                 <div class="formula-box">
                     <h3>📐 예측 수식</h3>
                     <div class="formula" id="formula">y = 0.00 × x + 0.00</div>
@@ -396,7 +427,6 @@
                     </div>
                 </div>
                 
-                <!-- 학습 포인트 -->
                 <div class="tips-section">
                     <p style="font-weight: 600; margin-bottom: 4px;">💡 관찰해보세요!</p>
                     <ul>
@@ -408,10 +438,9 @@
             </div>
         </div>
         
-        <!-- 하단 설명 카드 -->
         <div class="bottom-cards">
             <div class="card">
-                <h3>🎯 Ridge는 언제?</h3>
+                <h3><span id="ridgeIcon" class="query-icon">🎯</span> Ridge는 언제?</h3>
                 <p>변수가 많고 서로 관련이 있을 때! 모든 변수를 조금씩 사용해요.</p>
             </div>
             <div class="card">
@@ -424,7 +453,7 @@
             </div>
         </div>
     </div>
-
+    <div id="sparrowPopup">참새다!</div>
     <script>
         // 데이터 정의
         const scenarios = {
@@ -722,10 +751,39 @@
             updateChart();
         });
         
+        // [수정] 🎯 아이콘 클릭 이벤트 리스너 - 위치를 계산하여 툴팁처럼 표시
+        document.addEventListener('DOMContentLoaded', () => {
+            const ridgeIcon = document.getElementById('ridgeIcon'); 
+            const sparrowPopup = document.getElementById('sparrowPopup');
+            
+            if (ridgeIcon && sparrowPopup) {
+                ridgeIcon.addEventListener('click', (event) => {
+                    event.stopPropagation(); 
+                    
+                    // 1. 아이콘의 화면 내 위치를 정확히 계산
+                    const rect = ridgeIcon.getBoundingClientRect(); 
+                    
+                    // 2. 팝업 위치를 아이콘의 오른쪽 아래에 오도록 설정
+                    // 팝업의 position이 absolute이므로, window.scrollY/X를 더해줘야 현재 스크롤 위치를 반영한 정확한 위치가 됩니다.
+                    sparrowPopup.style.left = `${rect.left + window.scrollX}px`;
+                    sparrowPopup.style.top = `${rect.bottom + window.scrollY + 5}px`; // 아이콘 아래 5px 간격
+                    
+                    // 팝업 표시
+                    sparrowPopup.classList.add('show');
+                    
+                    // 0.5초(500ms) 후에 팝업 숨김 예약
+                    setTimeout(() => {
+                        sparrowPopup.classList.remove('show');
+                    }, 500); 
+                });
+            }
+        });
+
         // 초기화
         initChart();
         updateTable();
         updateChart();
     </script>
+    
 </body>
 </html>
